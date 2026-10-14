@@ -14,3 +14,8 @@
 2026-10-14 13:02:41 | read               | C:/Users/Abner B/Desktop/hooks/hooks/.reset/notas.py
 2026-10-14 13:02:42 | bash               | git branch -vv; git branch -r
 2026-10-14 13:02:57 | question           | 
+2026-10-14 13:03:04 | bash               | git add -A; git status --short
+2026-10-14 13:03:11 | bash               | git commit -m "Migrate guardian plugin to OpenCode 1.18 hook API and update notas"
+2026-10-14 13:03:25 | bash               | git push upstream main
+2026-10-14 13:04:40 | bash               | git status; git log --oneline -3
+2026-10-14 13:04:47 | bash               | git diff
