@@ -19,3 +19,34 @@
 2026-10-14 13:03:25 | bash               | git push upstream main
 2026-10-14 13:04:40 | bash               | git status; git log --oneline -3
 2026-10-14 13:04:47 | bash               | git diff
+2026-10-14 13:04:52 | bash               | git add -A; git commit -m "Update notas and audit log"
+2026-10-14 13:05:03 | bash               | git push upstream main
+2026-10-14 13:06:25 | glob               | **/*.yml
+2026-10-14 13:06:25 | glob               | **/test*.py
+2026-10-14 13:06:45 | bash               | Get-ChildItem -Recurse -File -Force | Where-Object { $_.FullName -notmatch '\\.git\\' } | Select-Object -ExpandProperty 
+2026-10-14 13:07:00 | read               | C:/Users/Abner B/Desktop/hooks/hooks/proyecto-demo/notas.py
+2026-10-14 13:07:00 | read               | C:/Users/Abner B/Desktop/hooks/hooks/hooks/verificar_push.py
+2026-10-14 13:07:00 | read               | C:/Users/Abner B/Desktop/hooks/hooks/proyecto-demo/tests/test_notas.py
+2026-10-14 13:07:01 | bash               | Get-ChildItem -Force -Directory | Select-Object -ExpandProperty Name
+2026-10-14 13:07:07 | bash               | Get-ChildItem -Recurse -Force -File -Include *.yml,*.yaml | Where-Object { $_.FullName -notmatch 'node_modules|\\.git\\'
+2026-10-14 13:07:20 | read               | C:/Users/Abner B/Desktop/hooks/hooks/.github/workflows/tests.yml
+2026-10-14 13:07:21 | read               | C:/Users/Abner B/Desktop/hooks/hooks/.reset/notas.py
+2026-10-14 13:07:21 | read               | C:/Users/Abner B/Desktop/hooks/hooks/.reset/test_notas.py
+2026-10-14 13:07:36 | bash               | python -B -m unittest discover -s tests -v
+2026-10-14 13:07:59 | bash               | git log --oneline --all -20
+2026-10-14 13:08:00 | bash               | git log --oneline -5 -- proyecto-demo/notas.py; echo "---reset---"; git log --oneline -5 -- .reset/notas.py
+2026-10-14 13:08:03 | bash               | Get-ChildItem -Recurse -Force -File | Where-Object { $_.FullName -match '\\(\.claude|\.codex|\.opencode|\.github|\.git\\
+2026-10-14 13:08:18 | bash               | git show 41c9ed8 -- proyecto-demo/notas.py
+2026-10-14 13:08:18 | bash               | git diff 41c9ed8 -- proyecto-demo/notas.py
+2026-10-14 13:20:45 | edit               | C:/Users/Abner B/Desktop/hooks/hooks/proyecto-demo/notas.py
+2026-10-14 13:20:45 | PRUEBAS            | FALLARON
+2026-10-14 13:21:00 | edit               | C:/Users/Abner B/Desktop/hooks/hooks/proyecto-demo/notas.py
+2026-10-14 13:21:01 | PRUEBAS            | OK
+2026-10-14 13:21:07 | edit               | C:/Users/Abner B/Desktop/hooks/hooks/.reset/notas.py
+2026-10-14 13:21:07 | PRUEBAS            | OK
+2026-10-14 13:21:14 | edit               | C:/Users/Abner B/Desktop/hooks/hooks/.reset/notas.py
+2026-10-14 13:21:14 | PRUEBAS            | OK
+2026-10-14 13:22:41 | bash               | git status --short
+2026-10-14 13:22:51 | bash               | git diff --stat
+2026-10-14 13:23:12 | bash               | git add .opencode/auditoria.log .reset/notas.py proyecto-demo/notas.py; git status --short
+2026-10-14 13:23:21 | bash               | git restore --staged proyecto-demo/__pycache__ 2>/dev/null; git restore --staged proyecto-demo/tests/__pycache__ 2>/dev/
