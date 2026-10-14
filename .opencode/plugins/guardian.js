@@ -1,11 +1,13 @@
-// Hooks de OpenCode 2: los 4 hooks de la demo en UN plugin de JavaScript.
+// Hooks de OpenCode: los 4 hooks de la demo en UN plugin de JavaScript.
 //
 // Diferencia clave con Claude Code y Codex: no hay settings.json/hooks.json.
 // El mismo archivo REGISTRA el evento y CONTIENE la lógica.
-//   - ctx.tool.hook("execute.before") = PreToolUse  → lanzar un Error BLOQUEA la herramienta
-//   - ctx.tool.hook("execute.after")  = PostToolUse → se puede modificar el resultado que ve el modelo
 //
-// Formato OpenCode 2: export default { id, setup(ctx) }  (en OpenCode 1 era una función que devolvía los hooks)
+// Formato correcto para OpenCode 1.18.x:
+//   export const Nombre = async ({ directory, ... }) => ({ ...hooks })
+//   - "tool.execute.before" = PreToolUse  → lanzar un Error BLOQUEA la herramienta
+//   - "tool.execute.after"  = PostToolUse → se puede modificar el resultado que ve el modelo
+//     (el hook "before" recibe los argumentos en output.args; el "after" los recibe en input.args)
 import { appendFileSync } from "node:fs"
 import { join } from "node:path"
 import { execFile } from "node:child_process"
@@ -23,9 +25,9 @@ const PELIGROSOS = [
 const editaArchivos = (tool) => /edit|write|patch/i.test(String(tool))
 
 // Rutas que toca una herramienta: campo directo o, si es un parche, las líneas "*** Update File: ruta"
-const rutasDe = (input = {}) => {
-  const rutas = [input.filePath, input.path, input.file_path].filter(Boolean).map(String)
-  for (const valor of Object.values(input)) {
+const rutasDe = (args = {}) => {
+  const rutas = [args.filePath, args.path, args.file_path].filter(Boolean).map(String)
+  for (const valor of Object.values(args)) {
     if (typeof valor === "string") {
       for (const m of valor.matchAll(/^\*\*\* (?:Add|Update|Delete) File: (.+)$/gm)) rutas.push(m[1].trim())
     }
@@ -41,26 +43,23 @@ const ejecutarPruebas = (proyecto) =>
     )
   })
 
-export default {
-  id: "upb.guardian",
-  async setup(ctx) {
-    const directorio = ctx.location.directory
+export const Guardian = async ({ directory }) => {
+  const auditar = (accion, detalle) => {
+    const fecha = new Date().toLocaleString("sv-SE") // formato local AAAA-MM-DD HH:MM:SS
+    const texto = String(detalle ?? "").replace(/\n/g, " ").slice(0, 120)
+    appendFileSync(join(directory, ".opencode", "auditoria.log"), `${fecha} | ${accion.padEnd(18)} | ${texto}\n`)
+  }
 
-    const auditar = (accion, detalle) => {
-      const fecha = new Date().toLocaleString("sv-SE") // formato local AAAA-MM-DD HH:MM:SS
-      const texto = String(detalle ?? "").replace(/\n/g, " ").slice(0, 120)
-      appendFileSync(join(directorio, ".opencode", "auditoria.log"), `${fecha} | ${accion.padEnd(18)} | ${texto}\n`)
-    }
+  auditar("PLUGIN cargado", "guardian.js está activo") // prueba de que OpenCode cargó el plugin
 
-    auditar("PLUGIN cargado", "guardian.js está activo") // prueba de que OpenCode cargó el plugin
-
+  return {
     // ── HOOK 1 y 2 · ANTES de usar una herramienta ─────────────────────────
-    await ctx.tool.hook("execute.before", (event) => {
-      const input = event.input ?? {}
+    "tool.execute.before": async (input, output) => {
+      const args = output.args ?? {}
 
       // HOOK 1: archivos protegidos
-      if (editaArchivos(event.tool)) {
-        for (const ruta of rutasDe(input)) {
+      if (editaArchivos(input.tool)) {
+        for (const ruta of rutasDe(args)) {
           const nombre = ruta.split("/").pop()
           if (ruta.includes("tests/")) {
             throw new Error(
@@ -75,38 +74,36 @@ export default {
       }
 
       // HOOK 2: comandos peligrosos (cualquier herramienta que reciba un "command")
-      if (typeof input.command === "string") {
+      if (typeof args.command === "string") {
         for (const [patron, motivo] of PELIGROSOS) {
-          if (patron.test(input.command)) {
-            throw new Error(`⛔ BLOQUEADO por hook: ${motivo}. Comando: ${input.command}`)
+          if (patron.test(args.command)) {
+            throw new Error(`⛔ BLOQUEADO por hook: ${motivo}. Comando: ${args.command}`)
           }
         }
       }
-    })
+    },
 
     // ── HOOK 3 y 4 · DESPUÉS de usar una herramienta ───────────────────────
-    await ctx.tool.hook("execute.after", async (event) => {
-      const input = event.input ?? {}
+    "tool.execute.after": async (input, output) => {
+      const args = input.args ?? {}
 
-      // HOOK 4: auditoría (los subagentes se lanzan con una herramienta que recibe el tipo de agente)
-      const subagente = input.subagent_type ?? input.agent
+      // HOOK 4: auditoría (los subagentes se lanzan con la herramienta "task")
+      const subagente = args.subagent_type ?? (input.tool === "task" ? args.description : null)
       if (subagente) auditar("SUBAGENTE terminó", subagente)
-      else auditar(event.tool ?? "?", rutasDe(input)[0] ?? input.command ?? input.pattern ?? "")
+      else auditar(input.tool ?? "?", rutasDe(args)[0] ?? args.command ?? args.pattern ?? "")
 
       // HOOK 3: pruebas automáticas después de editar código Python
-      if (event.status !== "completed" || !editaArchivos(event.tool)) return
-      if (!rutasDe(input).some((r) => r.endsWith(".py"))) return
+      if (!editaArchivos(input.tool)) return
+      if (!rutasDe(args).some((r) => r.endsWith(".py"))) return
 
-      const { ok, reporte } = await ejecutarPruebas(join(directorio, "proyecto-demo"))
+      const { ok, reporte } = await ejecutarPruebas(join(directory, "proyecto-demo"))
       const aviso = ok
-        ? `✅ Hook de pruebas: ${reporte.split("\n").find((l) => l.startsWith("Ran ")) ?? ""} → OK`
-        : `❌ El hook ejecutó las pruebas y FALLARON. Corrige el código (no las pruebas):\n${reporte.slice(-3000)}`
+        ? `\n\n✅ Hook de pruebas: ${reporte.split("\n").find((l) => l.startsWith("Ran ")) ?? ""} → OK`
+        : `\n\n❌ El hook ejecutó las pruebas y FALLARON. Corrige el código (no las pruebas):\n${reporte.slice(-3000)}`
       auditar("PRUEBAS", ok ? "OK" : "FALLARON")
 
-      // Se agrega el aviso al resultado que ve el modelo para que se corrija solo
-      // (en OpenCode 2, result.content es una lista de bloques { type: "text", text })
-      const r = event.result ?? {}
-      event.result = { ...r, content: [...(r.content ?? []), { type: "text", text: aviso }] }
-    })
-  },
+      // Se agrega el aviso a la salida que ve el modelo para que se corrija solo
+      output.output = `${output.output ?? ""}${aviso}`
+    },
+  }
 }

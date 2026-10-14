@@ -1,5 +1,5 @@
 """Sistema de gestión de notas para la materia de Programación I.
-
+#asa
 Escala de notas: 0 a 100. Se aprueba con 51 o más.
 """
 import sqlite3

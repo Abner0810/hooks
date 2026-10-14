@@ -1,0 +1,16 @@
+2026-10-14 12:58:00 | bash               | git rm -f .opencode/auditoria.log 2>&1; Write-Output "---UNSTAGE---"; git reset -q .opencode/plugins/guardian.js 2>&1; W
+2026-10-14 12:59:44 | bash               | git remote add upstream https://github.com/Abner0810/hooks 2>&1; git remote -v 2>&1
+2026-10-14 12:59:54 | bash               | git fetch upstream 2>&1; Write-Output "---AHEAD/BEHIND (local main vs upstream/main)---"; git rev-list --left-right --co
+2026-10-14 13:00:29 | bash               | git status 2>&1; Write-Output "---AHEAD/BEHIND---"; git rev-list --left-right --count main...upstream/main 2>&1
+2026-10-14 13:00:44 | bash               | git push upstream main 2>&1
+2026-10-14 13:01:12 | question           | 
+2026-10-14 13:01:19 | bash               | git diff --stat 2>&1; Write-Output "=== .gitignore (.opencode) ==="; git check-ignore -v .opencode/auditoria.log 2>&1; W
+2026-10-14 13:01:29 | bash               | git diff -- .opencode/plugins/guardian.js 2>&1 | Select-Object -First 60
+2026-10-14 13:01:59 | PLUGIN cargado     | guardian.js está activo
+2026-10-14 13:02:32 | bash               | git status
+2026-10-14 13:02:32 | bash               | git diff HEAD
+2026-10-14 13:02:32 | bash               | git log --oneline -10
+2026-10-14 13:02:32 | bash               | git remote -v
+2026-10-14 13:02:41 | read               | C:/Users/Abner B/Desktop/hooks/hooks/.reset/notas.py
+2026-10-14 13:02:42 | bash               | git branch -vv; git branch -r
+2026-10-14 13:02:57 | question           | 
